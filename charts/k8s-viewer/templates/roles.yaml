@@ -1,0 +1,43 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    {{- include "k8s-viewer.labels" . | nindent 4 }}
+  name: k8s-viewer
+rules:
+- apiGroups:
+  - ''
+  resources:
+  # - namespaces
+  # - secrets
+  - pods
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+# - apiGroups:
+#   - rbac.authorization.k8s.io
+#   resources:
+#   - roles
+#   - rolebindings
+#   verbs:
+#   - get
+#   - list
+#   - watch
+#   - bind
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    {{- include "k8s-viewer.labels" . | nindent 4 }}
+  name: k8s-viewer-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: k8s-viewer
+subjects:
+- kind: ServiceAccount
+  name: k8s-viewer
+  namespace: {{ .Release.Namespace }}

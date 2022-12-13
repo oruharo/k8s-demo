@@ -1,0 +1,57 @@
+.boxBase {
+    position: relative;
+    width: var(--w);
+    height: var(--h);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    .front {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: var(--w);
+      height: var(--h);
+    }
+    .top_side {
+      position: absolute;
+      transform-style: preserve-3d;
+      height: var(--h);
+      width: var(--sideLen);
+      background-color: var(--bkcolor);
+      border-top: 1px solid #555555;
+      border-bottom: 1px solid #555555;
+      box-sizing: border-box;
+      text-align: center;
+      &::before,
+      &::after {
+        position: absolute;
+        display: block;
+        content: "";
+        border: 1px solid #555555;
+        box-sizing: border-box;
+        height: var(--d);
+        width: var(--sideLen);
+        background-color: var(--bkcolor);
+        transform-style: preserve-3d;
+        transform: translateZ(calc(var(--d) / -2 + var(--u))) rotateX(-90deg);
+      }
+      &::before {
+        top: calc(var(--d) * -1 / 2);
+      }
+      &::after {
+        bottom: calc(var(--d) * -1 / 2);
+      }
+    }
+    .top {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: var(--w);
+      height: var(--h);
+//      background-color: red;
+      transform-style: preserve-3d;
+//      transform:translateZ(var(--d));
+    }
+  }

@@ -1,0 +1,224 @@
+  $font-size: 20px;
+
+  // https://graphicdesign.stackexchange.com/questions/130452/whats-the-font-of-the-kubernetes-logo
+  // https://fonts.google.com/specimen/Ubuntu?selection.family=Ubuntu:700
+  @import url("https://fonts.googleapis.com/css?family=Ubuntu:700&display=swap");
+
+  .header {
+    font-family: "Ubuntu", sans-serif;
+    font-size: 30px;
+    color: #eee;
+    background-color: #232f3e;
+  }
+
+  .scene-base {
+    position: relative;
+    background-color: #F2F3F3;
+    width: 700px;
+    height: 600px;
+    //background-color: rgba(100, 100, 200, 0.2);
+    perspective: 1800px;
+
+    div {
+      transform-style: preserve-3d;
+    }
+
+    .scene {
+      position: relative;
+      top: -100px;
+      min-width: 700px;
+      min-height: 700px;
+      display: grid;
+      grid-template:
+        "region"
+        / 1fr;
+      transform-style: preserve-3d;
+      transform: rotateX(45deg) rotateZ(-45deg) scale(0.75);
+    }
+  }
+
+  .x-rays-base {
+    position: relative;
+    user-select: none;
+
+    .x-ray1 {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      width: 700px;
+      height: 100%;
+      transform-style: preserve-3d;
+      transform: translateZ(50px);
+    }
+
+    .x-ray2 {
+      position: absolute;
+      top: 0px;
+      width: 300px;
+      height: 100%;
+      transform-style: preserve-3d;
+      transform-origin: 0 0;
+      transform: rotateY(-90deg);
+    }
+  }
+
+  .region {
+    user-select: none;
+    $lcolor: #eee;
+    $gradient1: linear-gradient(transparent 95%, $lcolor 50%, $lcolor);
+    $gradient2: linear-gradient(90deg, transparent 95%, $lcolor 50%, $lcolor);
+    background-image: $gradient1, $gradient2;
+    background-size: 50px 50px;
+    background-repeat: repeat;
+    grid-area: region;
+    position: relative;
+    $region-color: #0692c5;
+    background-color: #fff;
+    border: 4px dotted $region-color;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0px 30px 0px 0;
+    display: grid;
+    grid-template:
+      "alb   az" 1fr
+      / 50px 1fr;
+
+    >.title {
+      position: absolute;
+      right: 0;
+      top: 0;
+      writing-mode: vertical-rl;
+      background: url(../assets/Region_light-bg.svg) no-repeat;
+      background-size: 30px;
+      font-family: monospace;
+      font-weight: bold;
+      font-size: $font-size;
+      color: $region-color;
+      padding-top: 38px;
+      margin: 0;
+      display: block;
+    }
+
+    .eks {
+      position: absolute;
+      border: 5px dotted #2F6EE1;
+      box-sizing: border-box;
+      background-color: rgba(47, 110, 225, 0.1);
+      opacity: 1;
+      top: -100px;
+      bottom: -50px;
+      left: 100px;
+      right: 100px;
+
+      .pendding {
+        position: absolute;
+        top: 5px;
+        left: 10px;
+        display: flex;
+      }
+    }
+
+    .alb {
+      grid-area: alb;
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .az-base {
+      grid-area: az;
+    }
+  }
+
+  .availability-zone {
+    border: 2px dashed #0692c5;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 1fr 50px;
+    grid-template-areas: "node-base title";
+
+    >.title {
+      grid-area: title;
+      height: 100%;
+      writing-mode: vertical-rl;
+      font-family: monospace;
+      font-weight: bold;
+      font-size: $font-size;
+      color: #0692c5;
+      padding-top: 8px;
+      margin: 0;
+      display: block;
+    }
+  }
+
+  @keyframes myAnimation {
+    0% {
+      opacity: 1;
+    }
+
+    30% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+    }
+  }
+
+  path,
+  circle {
+    animation-name: myAnimation;
+    animation-duration: 3000ms;
+    animation-fill-mode: forwards;
+  }
+
+  /*Checkboxes styles*/
+  input[type="checkbox"] {
+    display: none;
+  }
+
+  input[type="checkbox"]+label {
+    display: block;
+    position: relative;
+    padding-left: 30px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  input[type="checkbox"]+label:before {
+    content: "";
+    display: block;
+    width: 15px;
+    height: 15px;
+    border: 2px solid #0692c5;
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0.6;
+    transition: all 0.12s, border-color 0.08s;
+  }
+
+  input[type="checkbox"]:checked+label:before {
+    width: 10px;
+    top: -5px;
+    left: 5px;
+    border-radius: 0;
+    opacity: 1;
+    border-top-color: transparent;
+    border-left-color: transparent;
+    transform: rotate(45deg);
+  }
+
+  .toprect {
+    display: flex;
+  }
+
+  @media (max-height: 599px),
+  (max-width: 599px) {
+    .toprect {
+      display: flex;
+      transform-origin: 0 0;
+      transform: scale(0.7);
+    }
+  }
