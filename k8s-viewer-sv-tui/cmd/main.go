@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -30,14 +31,14 @@ var (
 //
 // --------------------------------------------------------------------------------------------
 func main() {
-	//home := homeDir()
+	home := homeDir()
 
-	// logWriter, err := os.OpenFile(filepath.Join(home, "k8watcher.log"),
-	// 	os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
-	// if err != nil {
-	// 	panic(err.Error())
-	// }
-	//log.SetOutput(logWriter)
+	logWriter, err := os.OpenFile(filepath.Join(home, "k8watcher.log"),
+		os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err.Error())
+	}
+	log.SetOutput(logWriter)
 	log.SetFlags(log.Lshortfile | log.Lmicroseconds)
 	log.Println("start...")
 
