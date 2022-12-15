@@ -310,9 +310,9 @@ func (kw *KubeWatcher) EventReciever() {
 				})
 			} else {
 				region.PendingPods = append(region.PendingPods, pod)
-				sort.SliceStable(region.PendingPods, func(i, j int) bool {
-					return region.PendingPods[i].Name < region.PendingPods[j].Name
-				})
+				// sort.SliceStable(region.PendingPods, func(i, j int) bool {
+				// 	return region.PendingPods[i].Name < region.PendingPods[j].Name
+				// })
 			}
 		}
 
@@ -488,27 +488,29 @@ func (sock *SocketServer) msgHandler(ws *websocket.Conn) {
 		log.Fatalln(err)
 	}
 
-	ping := `{
-		"message": "sendmessage",
-		"action": "regist publisher",
-		"name": "eks-watcher"
-	  }`
+	ticker := time.NewTicker(30000 * time.Millisecond)
+	defer ticker.Stop()
+	go func() {
+		ping := `{"message": "ping"}`
+		for t := range ticker.C {
+			log.Println("ping", t, len(sock.clients))
+			err = websocket.Message.Send(ws, ping)
+			if err != nil {
+				log.Println("close", err)
+				break
+			}
+		}
+	}()
 
 	for {
-
-		time.Sleep(time.Second * 30)
-		err = websocket.Message.Send(ws, ping)
+		var msg string
+		err = websocket.Message.Receive(ws, &msg)
 		if err != nil {
-			log.Println("close", err)
+			log.Println("close2", err)
 			break
 		}
-		// err = websocket.Message.Receive(ws, &msg)
-		// if err != nil {
-		// 	log.Println("close", err)
-		// 	break
-		// }
 	}
-	sock.lock(func() { sock.clients[ws] = true })
+	sock.lock(func() { delete(sock.clients, ws) })
 	log.Println("msgHandler end")
 }
 
@@ -524,9 +526,14 @@ func (sock *SocketServer) Broad(msg string) {
 		}
 	})
 	log.Println(len(clients))
-	for _, cl := range clients {
-		if err := websocket.Message.Send(cl, msg); err != nil {
+	for _, ws := range clients {
+		log.Println("send to ", ws.Request().Header["X-Forwarded-For"])
+		if err := websocket.Message.Send(ws, msg); err != nil {
+
 			log.Println("send error", err)
+			sock.lock(func() {
+				delete(sock.clients, ws)
+			})
 		}
 	}
 
