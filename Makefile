@@ -140,13 +140,19 @@ demo: ## start demo
 	echo "\n## scale up 3->10 pods"; \
 	bash docmd.sh "kubectl scale deployment -n myapp app-a --replicas=10" ;\
 	sleep 5 ;\
-	echo "\n## scale up 3->10 pods"; \
+	echo "\n## add node"; \
 	bash docmd.sh "k3d node create node2 -c $(CLUSTER_NAME) -n k3d-my-k8s " ;\
 	sleep 10 ;\
+	echo "\n## deploy 10pods"; \
 	bash docmd.sh "kubectl create deployment -n myapp app-b --image=nginx --replicas=10 " ;\
 	sleep 10 ;\
+	echo "\n## drain node "; \
+	bash docmd.sh "kubectl drain k3d-node2-0 --ignore-daemonsets" ;\
+	bash docmd.sh "kubectl get node" ;\
+	echo "\n## deploy 10pods"; \
 	bash docmd.sh "kubectl create deployment -n myapp app-c --image=nginx --replicas=10 " ;\
-	sleep 10 ;\
+	sleep 15 ;\
+	echo "\n## remove node"; \
 	bash docmd.sh "kubectl delete node k3d-node2-0" ;\
 	sleep 5 ;\
 	bash docmd.sh "k3d node delete k3d-node2-0" ;\
@@ -160,8 +166,10 @@ cleanup-demo: ## clean up demo env
 	-kubectl delete deployment -n myapp app-b > /dev/null
 	-kubectl delete deployment -n myapp app-c > /dev/null
 	-kubectl delete namespace myapp > /dev/null
-	-kubectl delete node k3d-node2-0 > /dev/null
-	-k3d node delete k3d-node2-0 > /dev/null
+	-kubectl get node k3d-node2-0 > /dev/null 2>&1 && \
+	 kubectl delete node k3d-node2-0 > /dev/null && \
+	 k3d node delete k3d-node2-0 > /dev/null ; \
+	 exit 0
 	@echo ---------------------------
 
 #--k3s-node-label "failure-domain.beta.kubernetes.io/zone=zone-C@k3d-node2-0
