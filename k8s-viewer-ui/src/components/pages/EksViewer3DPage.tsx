@@ -1,3 +1,4 @@
+import { ControlPointDuplicateRounded } from "@mui/icons-material";
 import React, { useEffect, useRef, useState } from "react";
 import kubernetesIcon from '../assets/kubernetes.svg';
 import mobyIcon from '../assets/Moby-logo.png';
@@ -9,52 +10,78 @@ import Pod from "../molecules/Pod";
 import Svc from "../molecules/Svc";
 import classes from './EksViewer3DPage.module.scss';
 
+
+const useSocket = (onMessage: (message: any) => void) => {
+  console.log("useSocket start")
+  const re = useRef(WebSocket.prototype);
+
+  useEffect(() => {
+    console.log("useSocket useEffect")
+
+    const wsUrl = `wss://${window.location.host}${import.meta.env.BASE_URL}ws`
+    console.log(wsUrl)
+
+    function newSocket(): WebSocket {
+      const ws = new WebSocket(wsUrl);
+      ws.onopen = () => {
+        console.log("ws opened");
+        ws.send(JSON.stringify({
+          message: "sendmessage",
+          action: "regist subscriber",
+          name: "eks-viewer",
+          subscribe: "eks-watcher",
+        }));
+      };
+      ws.onmessage = e => {
+        const msg = JSON.parse(e.data);
+        onMessage(msg);
+      };
+      ws.onclose = (e) => {
+        setTimeout(() => {
+          console.log("ws reopenning...");
+          re.current = newSocket();
+        }, 5000);
+        console.log("ws closed");
+      }
+      ws.onerror = (e) => {
+        console.log("ws error");
+        //re.current.close();
+
+      }
+      return ws;
+    }
+
+    re.current = newSocket();
+
+    return () => {
+      re.current.close();
+    };
+  }, []);
+}
+
 const EksViewer3DPage: React.FC = () => {
 
   const albElm = useRef(null);
   const xRayBaseElm = useRef(null);
   let xrays: any[] = [];
-  const [region, setRegion] = useState(demoData)
+  const [region, setRegion] = useState(demoData);
   const [healthCheckShow, setHealthCheckShow] = useState(true);
   const [systemPodShow, setSystemPodShow] = useState(false);
 
-  const [wss, setWss] = useState(Date.now());
-  let ws = useRef(WebSocket.prototype);
-  useEffect(() => {
-    let wsUrl = `wss://${window.location.host}${import.meta.env.BASE_URL}ws`
-    console.log(wsUrl)
-    ws.current = new WebSocket(wsUrl);
-    ws.current.onopen = () => {
-      console.log("ws opened");
-      ws.current.send(JSON.stringify({
-        message: "sendmessage",
-        action: "regist subscriber",
-        name: "eks-viewer",
-        subscribe: "eks-watcher",
-      }));
-    };
-    ws.current.onmessage = e => {
-      const msg = JSON.parse(e.data);
-      if (msg.type === "healthcheck") {
-        //healthCheck(msg);
-      } else if (msg.type === "ap") {
-        console.log(msg);
-        //routeConnect(msg);
-      } else if (msg.type === "eks") {
-        console.log("eks", msg);
-        setRegion(msg as IRegion);
-      } else {
-        console.log(msg);
-      }
-    };
-    ws.current.onclose = () => {
-      console.log("ws closed");
-      setWss(Date.now());
+  useSocket((msg) => {
+    if (msg.type === "healthcheck") {
+      //healthCheck(msg);
+    } else if (msg.type === "ap") {
+      console.log(msg);
+      //routeConnect(msg);
+    } else if (msg.type === "eks") {
+      console.log("eks", msg);
+      setRegion(msg as IRegion);
+    } else {
+      console.log(msg);
     }
-    return () => {
-      ws.current.close();
-    };
-  }, [wss]);
+  });
+
 
   //------------------------------------------------------
   // 3D Rotate
@@ -98,10 +125,13 @@ const EksViewer3DPage: React.FC = () => {
                   <div style={{ position: 'absolute', top: 0, width: '80px', height: '80px', transformStyle: 'preserve-3d', transform: 'translateZ(20px)' }}>
                     {region.pendingPods && region.pendingPods.filter(p => (systemPodShow ? true : p.nameSpace !== 'kube-system'))
                       .map((pod, podcount) => (
-                        <div key={pod.name} style={{ transformStyle: 'preserve-3d' }}>
-                          {/* in:podAdd out:podDelete  */}
-                          <Pod pod={pod} w={80} h={18} d={30} u={Math.floor(podcount / 4) * 32}
-                            style={{ position: 'absolute', left: '0px', top: `${((podcount + 2) % 4) * 20}px` }} />
+                        <div key={pod.name} style={{
+                          transformStyle: 'preserve-3d',
+                          transform: `translateZ(${Math.floor(podcount / 4) * 32}px)`,
+                          position: 'absolute',
+                          left: '0px', top: `${2 + (podcount % 4) * 20}px`
+                        }}>
+                          <Pod pod={pod} w={80} h={18} d={30} />
                         </div>
                       ))
                     }
